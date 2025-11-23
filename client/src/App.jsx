@@ -6,6 +6,8 @@ import AddHabitForm from './AddHabitForm';
 import CalendarView from './CalendarView';
 import { api } from './api';
 
+import DecayInfoModal from './DecayInfoModal';
+
 function App() {
   const [character, setCharacter] = useState({ level: 1, exp: 0, expToNextLevel: 100 });
   const [habits, setHabits] = useState([]);
@@ -14,6 +16,7 @@ function App() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [enableAdvancedActions, setEnableAdvancedActions] = useState(false);
+  const [showDecayInfo, setShowDecayInfo] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -22,7 +25,6 @@ function App() {
       setEnableAdvancedActions(JSON.parse(savedSettings));
     }
   }, []);
-
   const toggleAdvancedActions = () => {
     const newValue = !enableAdvancedActions;
     setEnableAdvancedActions(newValue);
@@ -179,6 +181,16 @@ function App() {
     }
   };
 
+  const handleEditHabit = async (habit, newName) => {
+    const updatedHabit = { ...habit, name: newName };
+    try {
+      setHabits(habits.map(h => h.id === habit.id ? updatedHabit : h));
+      await api.updateHabit(updatedHabit);
+    } catch (err) {
+      console.error("Failed to update habit name", err);
+    }
+  };
+
   const handleReset = async () => {
     if (confirm('⚠️ DANGER: Are you sure you want to reset ALL data? This cannot be undone.')) {
       try {
@@ -193,7 +205,6 @@ function App() {
   const filteredHabits = habits.filter(h => h.frequency === activeTab);
 
   if (loading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">Loading...</div>;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 font-sans">
       <div className="max-w-3xl mx-auto">
@@ -202,13 +213,22 @@ function App() {
           <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-md">⚔️ Habit Quest</h1>
           <p className="text-purple-200">Level up your life</p>
 
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="absolute top-0 right-0 text-2xl p-2 hover:bg-white/10 rounded-full transition-colors"
-            title="Settings"
-          >
-            ⚙️
-          </button>
+          <div className="absolute top-0 right-0 flex gap-2">
+            <button
+              onClick={() => setShowDecayInfo(true)}
+              className="text-2xl p-2 hover:bg-white/10 rounded-full transition-colors"
+              title="How Decay Works"
+            >
+              ℹ️
+            </button>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="text-2xl p-2 hover:bg-white/10 rounded-full transition-colors"
+              title="Settings"
+            >
+              ⚙️
+            </button>
+          </div>
 
           {showSettings && (
             <div className="absolute top-12 right-0 bg-slate-800 border border-purple-500 rounded-lg p-4 shadow-xl z-10 w-64 text-left">
@@ -228,6 +248,8 @@ function App() {
             </div>
           )}
         </div>
+
+        {showDecayInfo && <DecayInfoModal onClose={() => setShowDecayInfo(false)} />}
 
         <CharacterProfile character={character} onReset={handleReset} showResetButton={enableAdvancedActions} />
         <StatsDashboard habits={habits} />
@@ -291,6 +313,7 @@ function App() {
                   habit={habit}
                   onToggle={handleToggleHabit}
                   onDelete={handleDeleteHabit}
+                  onEdit={handleEditHabit}
                 />
               ))
             )}
