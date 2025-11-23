@@ -1,0 +1,16 @@
+{
+  "name": "habit-quest-app",
+  "version": "1.0.0",
+  "description": "A gamified habit tracker application.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "express": "^4.17.1",
+    "sqlite3": "^5.1.7"
+  },
+  "author": "",
+  "license": "ISC"
+}
