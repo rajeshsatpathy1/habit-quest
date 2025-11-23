@@ -19,6 +19,9 @@ export default function HabitItem({ habit, onToggle, onDelete }) {
                 <div className="flex-1 flex items-center gap-4">
                     <button
                         onClick={() => onToggle(habit)}
+                        role="checkbox"
+                        aria-checked={habit.completedToday}
+                        aria-label={`Mark ${habit.name} as completed`}
                         className={`w-8 h-8 rounded-lg font-bold text-lg transition-colors flex items-center justify-center ${habit.completedToday ? 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-slate-700 text-slate-400 hover:bg-slate-600'}`}
                     >
                         {habit.completedToday && '✓'}

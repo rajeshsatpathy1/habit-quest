@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 
 export default function CalendarView({ habits }) {
     const [selectedDate, setSelectedDate] = useState(new Date().toDateString());
+    const [currentDate, setCurrentDate] = useState(new Date());
 
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
 
     // Get days in month
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
@@ -19,6 +19,14 @@ export default function CalendarView({ habits }) {
     for (let i = 1; i <= daysInMonth; i++) {
         days.push(new Date(currentYear, currentMonth, i));
     }
+
+    const prevMonth = () => {
+        setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+    };
+
+    const nextMonth = () => {
+        setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+    };
 
     // Check if a date has completions
     const getCompletionsForDate = (dateStr) => {
@@ -35,10 +43,15 @@ export default function CalendarView({ habits }) {
     };
 
     const selectedDateCompletions = getCompletionsForDate(selectedDate);
+    const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
     return (
         <div className="bg-slate-800 rounded-lg p-6 mb-6 border border-purple-500 shadow-lg">
-            <h2 className="text-xl font-bold text-white mb-4">Quest Log Calendar</h2>
+            <div className="flex items-center justify-between mb-4">
+                <button onClick={prevMonth} className="p-2 hover:bg-slate-700 rounded-full text-purple-300">◀</button>
+                <h2 className="text-xl font-bold text-white">{monthName}</h2>
+                <button onClick={nextMonth} className="p-2 hover:bg-slate-700 rounded-full text-purple-300">▶</button>
+            </div>
 
             <div className="overflow-x-auto">
                 <div className="grid grid-cols-7 gap-1 mb-4 text-center text-sm text-purple-300 min-w-[300px]">

@@ -32,8 +32,26 @@ function App() {
   const loadData = async () => {
     try {
       const data = await api.getData();
+
+      // Check for daily reset
+      const today = new Date().toDateString();
+      const resetPromises = [];
+
+      const updatedHabits = data.habits.map(habit => {
+        if (habit.completedToday && habit.lastCompletedDate !== today) {
+          const updated = { ...habit, completedToday: false };
+          resetPromises.push(api.updateHabit(updated));
+          return updated;
+        }
+        return habit;
+      });
+
+      if (resetPromises.length > 0) {
+        await Promise.all(resetPromises);
+      }
+
       setCharacter(data.character);
-      setHabits(data.habits);
+      setHabits(updatedHabits);
     } catch (err) {
       console.error("Failed to load data", err);
     } finally {
@@ -216,19 +234,45 @@ function App() {
         <AddHabitForm onAdd={handleAddHabit} />
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 bg-slate-800/50 p-1 rounded-lg backdrop-blur-sm overflow-x-auto">
-          {['daily', 'weekly', 'monthly', 'calendar'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 px-6 py-2 rounded-md font-bold transition-all duration-200 capitalize whitespace-nowrap ${activeTab === tab
-                ? 'bg-purple-600 text-white shadow-lg'
-                : 'text-purple-300 hover:bg-slate-700/50'
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 mb-6">
+          <button
+            onClick={() => {
+              const tabs = ['daily', 'weekly', 'monthly', 'calendar'];
+              const currentIndex = tabs.indexOf(activeTab);
+              const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+              setActiveTab(tabs[prevIndex]);
+            }}
+            className="p-2 bg-slate-800/50 hover:bg-slate-700 rounded-lg text-purple-300"
+          >
+            ◀
+          </button>
+
+          <div className="flex-1 flex gap-2 bg-slate-800/50 p-1 rounded-lg backdrop-blur-sm overflow-x-auto">
+            {['daily', 'weekly', 'monthly', 'calendar'].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 px-6 py-2 rounded-md font-bold transition-all duration-200 capitalize whitespace-nowrap ${activeTab === tab
+                  ? 'bg-purple-600 text-white shadow-lg'
+                  : 'text-purple-300 hover:bg-slate-700/50'
+                  }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => {
+              const tabs = ['daily', 'weekly', 'monthly', 'calendar'];
+              const currentIndex = tabs.indexOf(activeTab);
+              const nextIndex = (currentIndex + 1) % tabs.length;
+              setActiveTab(tabs[nextIndex]);
+            }}
+            className="p-2 bg-slate-800/50 hover:bg-slate-700 rounded-lg text-purple-300"
+          >
+            ▶
+          </button>
         </div>
 
         {/* Content */}
