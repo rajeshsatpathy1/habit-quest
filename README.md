@@ -2,7 +2,7 @@
 
 **Habit Quest** is a gamified habit tracker that turns your daily routines into an RPG adventure. Level up your character, gain XP, and track your consistency with a beautiful, modern interface.
 
-![Habit Quest](https://via.placeholder.com/800x400?text=Habit+Quest+Preview)
+![Habit Quest](https://rajeshsatpathy1.github.io/habit-quest/)
 
 ## ✨ Features
 
