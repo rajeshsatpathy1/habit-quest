@@ -213,7 +213,7 @@ function App() {
           <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-md">⚔️ Habit Quest</h1>
           <p className="text-purple-200">Level up your life</p>
 
-          <div className="absolute top-0 right-0 flex gap-2">
+          <div className="absolute top-0 left-0">
             <button
               onClick={() => setShowDecayInfo(true)}
               className="text-2xl p-2 hover:bg-white/10 rounded-full transition-colors"
@@ -221,6 +221,9 @@ function App() {
             >
               ℹ️
             </button>
+          </div>
+
+          <div className="absolute top-0 right-0 flex gap-2">
             <button
               onClick={() => setShowSettings(!showSettings)}
               className="text-2xl p-2 hover:bg-white/10 rounded-full transition-colors"
