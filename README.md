@@ -1,6 +1,6 @@
 # ⚔️ Habit Quest
 
-**Habit Quest** is a gamified habit tracker that turns your daily routines into an RPG adventure. Level up your character, gain XP, and track your consistency with a beautiful, modern interface. This was built in Google AntiGravity IDE.
+**Habit Quest** is a gamified habit tracker that turns your daily routines into an RPG adventure. Level up your character, gain XP, and track your consistency with a beautiful, modern interface. This was built in Google Antigravity IDE.
 
 **Demo Static App**:
 [Habit Quest](https://rajeshsatpathy1.github.io/habit-quest/)
@@ -15,6 +15,25 @@
 -   **Responsive Design**: Works great on desktop and mobile devices.
 -   **Data Safety**: SQLite database ensures your progress is saved locally.
 -   **Advanced Actions**: Feature-flagged "Reset Data" option for starting fresh.
+
+## 🤖 Google Antigravity Workflow
+This project was built using the **Google Antigravity IDE**, an advanced agentic coding environment. The development process follows a structured, intelligent workflow:
+
+1.  **Analyze Intent** 🧠: The agent first understands the user's high-level goal (e.g., "Add a habit editing feature").
+2.  **Analyze Files** 📂: It scans the codebase to identify relevant files and dependencies.
+3.  **Create Tasks** 📝: A detailed implementation plan is generated (often as a markdown task list).
+4.  **Implement** 💻: The agent writes code, creates files, and runs commands to execute the plan.
+5.  **Verify** ✅: It runs tests or checks the browser to ensure the feature works as expected.
+
+![Google AntiGravity Workflow](./assets/antigravity_workflow.png)
+
+### 🧠 Intelligent Artifacts
+Antigravity uses specialized markdown artifacts to maintain context and history throughout the development lifecycle:
+
+*   **Implementation Plan**: Tracks the evolution of the technical design. The IDE allows you to view diffs between versions (as shown below), enabling you to see exactly how the plan changed over time as requirements evolved.
+    ![Implementation Plan Progress](./assets/implementation_plan_diff.png)
+*   **Task List (`task.md`)**: A living checklist that breaks down complex objectives into granular steps, tracking progress in real-time.
+*   **Walkthrough (`walkthrough.md`)**: Captures "proof of work" after implementation. It includes screenshots, logs, and test results to verify that the changes meet the user's intent.
 
 ## 🛠️ Tech Stack
 
