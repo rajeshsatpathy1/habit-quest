@@ -4,7 +4,9 @@
   "description": "A gamified habit tracker application.",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "deploy": "cd client && npm run deploy",
+    "build": "cd client && npm run build"
   },
   "dependencies": {
     "body-parser": "^2.2.0",
