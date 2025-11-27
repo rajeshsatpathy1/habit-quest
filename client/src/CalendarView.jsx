@@ -60,26 +60,58 @@ export default function CalendarView({ habits }) {
                         if (!date) return <div key={index} className="p-2"></div>;
 
                         const dateStr = date.toDateString();
-                        const completions = getCompletionsForDate(dateStr);
-                        const hasActivity = completions.length > 0;
-                        const isSelected = selectedDate === dateStr;
                         const isToday = dateStr === new Date().toDateString();
+                        const isFuture = date > new Date();
+
+                        // Filter for daily habits only
+                        const dailyHabits = habits.filter(h => h.frequency === 'daily');
+
+                        // Check active habits on this date (created before or on this date)
+                        // We use the habit ID (timestamp) to check creation date
+                        const activeHabitsOnDate = dailyHabits.filter(h => {
+                            const createdDate = new Date(h.id);
+                            createdDate.setHours(0, 0, 0, 0);
+                            return createdDate <= date;
+                        });
+
+                        const completionsOnDate = activeHabitsOnDate.filter(h => {
+                            if (h.completedToday && isToday) return true;
+                            return h.completionHistory && h.completionHistory.includes(dateStr);
+                        });
+
+                        const totalActive = activeHabitsOnDate.length;
+                        const totalCompleted = completionsOnDate.length;
+                        const completionPercentage = totalActive > 0 ? (totalCompleted / totalActive) * 100 : 0;
+
+                        let bgClass = 'hover:bg-slate-700 text-slate-300'; // Default/Future/No Active
+
+                        if (!isFuture && totalActive > 0) {
+                            if (totalCompleted === 0) {
+                                // Missed all
+                                bgClass = 'bg-red-900/30 text-red-200 border border-red-500/30';
+                            } else {
+                                // Gradient based on completion
+                                if (completionPercentage <= 25) bgClass = 'bg-green-900/40 text-green-100';
+                                else if (completionPercentage <= 50) bgClass = 'bg-green-800/60 text-green-100';
+                                else if (completionPercentage <= 75) bgClass = 'bg-green-600/80 text-white';
+                                else bgClass = 'bg-green-500 text-white shadow-[0_0_10px_rgba(34,197,94,0.4)]';
+                            }
+                        }
+
+                        const isSelected = selectedDate === dateStr;
 
                         return (
                             <button
                                 key={index}
                                 onClick={() => handleDateClick(date)}
                                 className={`
-                  p-2 rounded-lg transition-all relative
-                  ${isSelected ? 'bg-purple-600 text-white ring-2 ring-purple-300' : 'hover:bg-slate-700 text-slate-300'}
-                  ${isToday ? 'border border-purple-400' : ''}
-                  ${hasActivity && !isSelected ? 'bg-slate-700/50' : ''}
+                  p-2 rounded-lg transition-all relative h-10 flex items-center justify-center
+                  ${isSelected ? 'ring-2 ring-purple-300 z-10' : ''}
+                  ${bgClass}
+                  ${isToday ? 'border-2 border-purple-400' : ''}
                 `}
                             >
                                 {date.getDate()}
-                                {hasActivity && (
-                                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-400 rounded-full"></div>
-                                )}
                             </button>
                         );
                     })}

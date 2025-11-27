@@ -35,13 +35,36 @@ function App() {
     try {
       const data = await api.getData();
 
-      // Check for daily reset
-      const today = new Date().toDateString();
+      // Check for daily reset and streak maintenance
+      const today = new Date();
+      const todayStr = today.toDateString();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toDateString();
+
       const resetPromises = [];
 
       const updatedHabits = data.habits.map(habit => {
-        if (habit.completedToday && habit.lastCompletedDate !== today) {
-          const updated = { ...habit, completedToday: false };
+        let updated = { ...habit };
+        let changed = false;
+
+        // 1. Uncheck "completedToday" if it's a new day
+        if (updated.completedToday && updated.lastCompletedDate !== todayStr) {
+          updated.completedToday = false;
+          changed = true;
+        }
+
+        // 2. Reset streak if missed yesterday (for daily habits)
+        if (updated.frequency === 'daily' && updated.streak > 0) {
+          const lastCompleted = updated.lastCompletedDate;
+          // If last completed was neither today nor yesterday, streak is broken
+          if (lastCompleted !== todayStr && lastCompleted !== yesterdayStr) {
+            updated.streak = 0;
+            changed = true;
+          }
+        }
+
+        if (changed) {
           resetPromises.push(api.updateHabit(updated));
           return updated;
         }
