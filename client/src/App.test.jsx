@@ -13,14 +13,13 @@ vi.mock('./api', () => ({
         deleteHabit: vi.fn(),
         updateCharacter: vi.fn(),
         resetData: vi.fn(),
-        getHabitHistory: vi.fn(), // Added missing mock
+        getHabitHistory: vi.fn(),
     },
 }));
 
 describe('App Component - Daily Reset Logic', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        // Default mock return for getHabitHistory to avoid crash
         api.getHabitHistory.mockResolvedValue([]);
     });
 
@@ -28,13 +27,12 @@ describe('App Component - Daily Reset Logic', () => {
         const today = new Date().toDateString();
         const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-        // Mock data: Habit was completed yesterday, but completedToday is still true (simulating the bug)
         const mockHabits = [
             {
                 id: 1,
                 name: 'Daily Walk',
                 frequency: 'daily',
-                completedToday: true, // This should be reset
+                completedToday: true,
                 lastCompletedDate: yesterday,
                 streak: 5,
                 completionHistory: [yesterday],
@@ -51,36 +49,54 @@ describe('App Component - Daily Reset Logic', () => {
 
         render(<App />);
 
-        // Wait for data to load
         await waitFor(() => {
             expect(screen.getByText('Daily Walk')).toBeInTheDocument();
         });
 
-        // Check if the checkbox is unchecked (it should be unchecked because it's a new day)
-        // We look for the button with role="checkbox"
-        const checkbox = screen.getByRole('checkbox', { name: /Daily Walk/i }); // The button has the habit name inside it? No, name is separate.
-        // Wait, HabitItem structure:
-        // <button ...>{habit.completedToday && '✓'}</button>
-        // <h3>{habit.name}</h3>
-        // The button does NOT have the name inside it. It has no text if unchecked.
-        // So getByRole('checkbox', { name: ... }) might fail if it relies on accessible name.
-        // The button has no aria-label.
-        // I should add aria-label to the button in HabitItem.jsx or find it by role only (if there's only one).
-
-        // For now, let's assume there's only one checkbox.
-        // Or I can verify if I need to add aria-label.
-        // In HabitItem.jsx:
-        // <button onClick={...} role="checkbox" aria-checked={...}>
-
-        // I will use screen.getAllByRole('checkbox')[0] if name fails.
-        // But better to fix HabitItem to have aria-label.
-
+        const checkbox = screen.getAllByRole('checkbox')[0];
         expect(checkbox).not.toBeChecked();
 
-        // Verify api.updateHabit was called to persist the reset
         expect(api.updateHabit).toHaveBeenCalledWith(expect.objectContaining({
             id: 1,
             completedToday: false
+        }));
+    });
+
+    it('should reset streak to 0 if lastCompletedDate was before yesterday', async () => {
+        const today = new Date();
+        const twoDaysAgo = new Date(today);
+        twoDaysAgo.setDate(today.getDate() - 2);
+        const twoDaysAgoStr = twoDaysAgo.toDateString();
+
+        const mockHabits = [
+            {
+                id: 2,
+                name: 'Read Book',
+                frequency: 'daily',
+                completedToday: false,
+                lastCompletedDate: twoDaysAgoStr,
+                streak: 10,
+                completionHistory: [twoDaysAgoStr],
+                totalCompleted: 50,
+            },
+        ];
+
+        const mockCharacter = { level: 1, exp: 0, expToNextLevel: 100 };
+
+        api.getData.mockResolvedValue({
+            character: mockCharacter,
+            habits: mockHabits,
+        });
+
+        render(<App />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Read Book')).toBeInTheDocument();
+        });
+
+        expect(api.updateHabit).toHaveBeenCalledWith(expect.objectContaining({
+            id: 2,
+            streak: 0
         }));
     });
 });

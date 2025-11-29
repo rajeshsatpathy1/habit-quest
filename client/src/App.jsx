@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CharacterProfile from './CharacterProfile';
 import StatsDashboard from './StatsDashboard';
 import HabitItem from './HabitItem';
@@ -18,13 +18,59 @@ function App() {
   const [enableAdvancedActions, setEnableAdvancedActions] = useState(false);
   const [showDecayInfo, setShowDecayInfo] = useState(false);
 
+  const lastCheckedDateRef = useRef(new Date().toDateString());
+
   useEffect(() => {
     loadData();
     const savedSettings = localStorage.getItem('enableAdvancedActions');
     if (savedSettings) {
       setEnableAdvancedActions(JSON.parse(savedSettings));
     }
-  }, []);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Refresh data when app comes to foreground
+        // This handles the case where the day changed while app was in background
+        loadData();
+        lastCheckedDateRef.current = new Date().toDateString();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Check for day rollover every minute while app is open
+    const intervalId = setInterval(() => {
+      const now = new Date();
+      const todayStr = now.toDateString();
+
+      if (todayStr !== lastCheckedDateRef.current) {
+        console.log("New day detected, refreshing data...");
+        lastCheckedDateRef.current = todayStr;
+        loadData();
+      }
+
+      // Notification Check (10 PM)
+      if (now.getHours() === 22 && now.getMinutes() === 0) {
+        const incompleteHabits = habits.filter(h => h.frequency === 'daily' && !h.completedToday && h.streak > 0);
+        if (incompleteHabits.length > 0 && Notification.permission === 'granted') {
+          new Notification("Habit Quest Warning", {
+            body: `⚠️ Danger! You have ${incompleteHabits.length} habits at risk of breaking streaks!`,
+            requireInteraction: true
+          });
+        }
+      }
+    }, 60000);
+
+    // Request notification permission on load
+    if (Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(intervalId);
+    };
+  }, [habits]); // Added habits dependency for notification check
   const toggleAdvancedActions = () => {
     const newValue = !enableAdvancedActions;
     setEnableAdvancedActions(newValue);
@@ -160,8 +206,13 @@ function App() {
       // Uncompleting
       updatedHabit.completedToday = false;
       updatedHabit.streak = Math.max(0, updatedHabit.streak - 1);
+
+      // Revert lastCompletedDate to the most recent date in history (excluding today)
+      const previousDates = updatedHabit.completionHistory.filter(d => d !== today);
+      updatedHabit.lastCompletedDate = previousDates.length > 0 ? previousDates[previousDates.length - 1] : null;
+
       updatedHabit.lastActionDate = today;
-      updatedHabit.completionHistory = updatedHabit.completionHistory.filter(d => d !== today);
+      updatedHabit.completionHistory = previousDates;
       updatedHabit.totalCompleted = Math.max(0, updatedHabit.totalCompleted - 1);
 
       // Deduct XP (Fix for infinite XP glitch)
@@ -271,6 +322,23 @@ function App() {
               <p className="text-xs text-slate-500 mt-2">
                 Enables dangerous actions like "Reset Data".
               </p>
+
+              <div className="mt-4 pt-3 border-t border-slate-600">
+                <button
+                  onClick={() => {
+                    Notification.requestPermission().then(perm => {
+                      if (perm === 'granted') {
+                        new Notification("Habit Quest", { body: "✅ Notifications are working!" });
+                      } else {
+                        alert("Please allow notifications in your browser settings.");
+                      }
+                    });
+                  }}
+                  className="w-full py-1 px-2 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded transition-colors"
+                >
+                  Test Notification
+                </button>
+              </div>
             </div>
           )}
         </div>
