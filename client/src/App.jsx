@@ -66,6 +66,15 @@ function App() {
       Notification.requestPermission();
     }
 
+    // Unregister any existing Service Workers (fixes SSL/SW errors)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(intervalId);

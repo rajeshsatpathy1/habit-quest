@@ -151,6 +151,17 @@ app.put('/api/character', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const https = require('https');
+const fs = require('fs');
+
+// ... existing code ...
+
+const privateKey = fs.readFileSync(path.join(__dirname, '../key.pem'), 'utf8');
+const certificate = fs.readFileSync(path.join(__dirname, '../cert.pem'), 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(PORT, () => {
+  console.log(`Server is running on https://localhost:${PORT}`);
 });
