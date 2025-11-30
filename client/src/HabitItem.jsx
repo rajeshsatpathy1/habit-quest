@@ -86,7 +86,7 @@ export default function HabitItem({ habit, onToggle, onDelete, onEdit }) {
                             <span className="text-2xl" title="Habit Health">{decayEmojis[decayLevel]}</span>
                             {habit.streak > 0 && (
                                 <span className="text-orange-400 flex items-center gap-1 font-medium">
-                                    ⚡ {habit.streak} day streak
+                                    ⚡ {habit.streak} {habit.frequency === 'daily' ? 'day' : habit.frequency === 'weekly' ? 'week' : 'month'} streak
                                 </span>
                             )}
                         </div>
