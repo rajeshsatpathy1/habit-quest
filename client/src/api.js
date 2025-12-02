@@ -15,45 +15,90 @@ const saveMockData = (data) => {
     localStorage.setItem('habitQuestData', JSON.stringify(data));
 };
 
-// Real API
+import { SyncManager } from './SyncManager';
+
+// Real API with Offline Support
 const realApi = {
     getData: async () => {
-        const res = await fetch(`${API_BASE}/data`);
-        return res.json();
+        try {
+            const res = await fetch(`${API_BASE}/data`);
+            if (!res.ok) throw new Error('Network response was not ok');
+            const data = await res.json();
+            SyncManager.saveToCache('data', data);
+            return data;
+        } catch (err) {
+            console.warn("Offline mode: Loading data from cache", err);
+            const cachedData = SyncManager.loadFromCache('data');
+            if (cachedData) return cachedData;
+            throw err;
+        }
     },
     addHabit: async (habit) => {
-        const res = await fetch(`${API_BASE}/habit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(habit),
-        });
-        return res.json();
+        try {
+            const res = await fetch(`${API_BASE}/habit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(habit),
+            });
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        } catch (err) {
+            console.warn("Offline mode: Queuing ADD_HABIT", err);
+            SyncManager.queueRequest({ type: 'ADD_HABIT', payload: habit });
+            return { id: habit.id, offline: true };
+        }
     },
     updateHabit: async (habit) => {
-        const res = await fetch(`${API_BASE}/habit/${habit.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(habit),
-        });
-        return res.json();
+        try {
+            const res = await fetch(`${API_BASE}/habit/${habit.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(habit),
+            });
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        } catch (err) {
+            console.warn("Offline mode: Queuing UPDATE_HABIT", err);
+            SyncManager.queueRequest({ type: 'UPDATE_HABIT', payload: habit });
+            return { success: true, offline: true };
+        }
     },
     deleteHabit: async (id) => {
-        const res = await fetch(`${API_BASE}/habit/${id}`, {
-            method: 'DELETE',
-        });
-        return res.json();
+        try {
+            const res = await fetch(`${API_BASE}/habit/${id}`, {
+                method: 'DELETE',
+            });
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        } catch (err) {
+            console.warn("Offline mode: Queuing DELETE_HABIT", err);
+            SyncManager.queueRequest({ type: 'DELETE_HABIT', payload: id });
+            return { deleted: 1, offline: true };
+        }
     },
     updateCharacter: async (character) => {
-        const res = await fetch(`${API_BASE}/character`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(character),
-        });
-        return res.json();
+        try {
+            const res = await fetch(`${API_BASE}/character`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(character),
+            });
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        } catch (err) {
+            console.warn("Offline mode: Queuing UPDATE_CHARACTER", err);
+            SyncManager.queueRequest({ type: 'UPDATE_CHARACTER', payload: character });
+            return { success: true, offline: true };
+        }
     },
     getHabitHistory: async () => {
-        const res = await fetch(`${API_BASE}/habits/history`);
-        return res.json();
+        try {
+            const res = await fetch(`${API_BASE}/habits/history`);
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        } catch (err) {
+            return []; // History might not be critical offline
+        }
     },
     resetData: async () => {
         const res = await fetch(`${API_BASE}/reset`, {

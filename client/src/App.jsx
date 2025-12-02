@@ -8,11 +8,14 @@ import { api } from './api';
 
 import DecayInfoModal from './DecayInfoModal';
 
+import { SyncManager } from './SyncManager';
+
 function App() {
   const [character, setCharacter] = useState({ level: 1, exp: 0, expToNextLevel: 100 });
   const [habits, setHabits] = useState([]);
   const [activeTab, setActiveTab] = useState('daily');
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const [showSettings, setShowSettings] = useState(false);
   const [enableAdvancedActions, setEnableAdvancedActions] = useState(false);
@@ -29,14 +32,24 @@ function App() {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // Refresh data when app comes to foreground
-        // This handles the case where the day changed while app was in background
         loadData();
         lastCheckedDateRef.current = new Date().toDateString();
       }
     };
 
+    const handleOnline = () => {
+      setIsOffline(false);
+      console.log("Back online! Syncing...");
+      SyncManager.processQueue(api).then(() => loadData());
+    };
+
+    const handleOffline = () => {
+      setIsOffline(true);
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     // Check for day rollover every minute while app is open
     const intervalId = setInterval(() => {
@@ -67,19 +80,17 @@ function App() {
     }
 
     // Unregister any existing Service Workers (fixes SSL/SW errors)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(registrations => {
-        for (let registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
+    // NOTE: We are now using PWA, so we might want to keep the new one.
+    // But for now, let's leave this cleanup logic as it might conflict with the new PWA plugin if not careful.
+    // Actually, vite-plugin-pwa handles its own SW. Let's remove the manual unregister to avoid killing our new SW.
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
       clearInterval(intervalId);
     };
-  }, [habits]); // Added habits dependency for notification check
+  }, [habits]);
   const toggleAdvancedActions = () => {
     const newValue = !enableAdvancedActions;
     setEnableAdvancedActions(newValue);
@@ -295,6 +306,11 @@ function App() {
         <div className="text-center mb-8 relative">
           <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-md">⚔️ Habit Quest</h1>
           <p className="text-purple-200">Level up your life</p>
+          {isOffline && (
+            <div className="mt-2 inline-block bg-yellow-600/90 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">
+              ⚠️ Offline Mode
+            </div>
+          )}
 
           <div className="absolute top-0 left-0">
             <button
