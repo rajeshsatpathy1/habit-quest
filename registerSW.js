@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/habit-quest/sw.js', { scope: '/habit-quest/' })})}
