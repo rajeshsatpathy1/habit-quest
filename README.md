@@ -12,6 +12,9 @@
 -   **Soft Delete & History**: Deleting a habit archives it. Your history and XP are preserved.
 -   **Autocomplete**: Quickly recreate past habits with smart suggestions.
 -   **Calendar View**: Visualize your consistency with a monthly activity calendar.
+-   **Offline Support**: Continue your quest even without internet. Progress syncs automatically when you reconnect.
+-   **Habit Decay Insights**: Clear visualization of how habit neglect affects your stats, with helpful tooltips.
+-   **Smart Streaks**: Tracks daily, weekly, and monthly streaks accurately.
 -   **Responsive Design**: Works great on desktop and mobile devices.
 -   **Data Safety**: SQLite database ensures your progress is saved locally.
 -   **Advanced Actions**: Feature-flagged "Reset Data" option for starting fresh.
