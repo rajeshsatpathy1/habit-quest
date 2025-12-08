@@ -120,17 +120,35 @@ export default function StatsDashboard({ habits, onFilterChange }) {
 
     return (
         <div className="grid grid-cols-3 gap-4 mb-6">
-            {['daily', 'weekly', 'monthly'].map(period => (
-                <div
-                    key={period}
-                    onClick={() => onFilterChange && onFilterChange(period)}
-                    className="bg-slate-800 rounded-lg p-4 border border-purple-500 text-center shadow-md cursor-pointer hover:bg-slate-700 transition-colors"
-                >
-                    <div className="text-sm text-purple-300 uppercase font-bold mb-2">{getLabel(period)}</div>
-                    <div className="text-3xl font-bold text-white mb-1">{calculateRate(period)}%</div>
-                    <div className="text-xs text-slate-400">{getSubLabel(period)}</div>
-                </div>
-            ))}
+            {['daily', 'weekly', 'monthly'].map(period => {
+                const percentage = calculateRate(period);
+                return (
+                    <div
+                        key={period}
+                        onClick={() => onFilterChange && onFilterChange(period)}
+                        className="bg-slate-800 rounded-lg p-4 border border-purple-500 text-center shadow-md cursor-pointer hover:bg-slate-700 transition-colors relative overflow-hidden group"
+                    >
+                        <div className="text-sm text-purple-300 uppercase font-bold mb-2 relative z-10">{getLabel(period)}</div>
+
+                        {/* Progress Bar Container */}
+                        <div className="w-full bg-slate-900/50 rounded-full h-4 mb-2 relative z-10 border border-slate-600">
+                            <div
+                                className="bg-gradient-to-r from-purple-600 to-blue-500 h-full rounded-full transition-all duration-700 ease-out"
+                                style={{ width: `${percentage}%` }}
+                            ></div>
+                        </div>
+
+                        <div className="text-xs font-bold text-white relative z-10">{percentage}%</div>
+                        <div className="text-[10px] text-slate-400 relative z-10">{getSubLabel(period)}</div>
+
+                        {/* Subtle background glow based on progress */}
+                        <div
+                            className="absolute bottom-0 left-0 w-full h-1/3 bg-purple-600/10 blur-xl transition-opacity duration-500"
+                            style={{ opacity: percentage / 100 }}
+                        ></div>
+                    </div>
+                );
+            })}
         </div>
     );
 }

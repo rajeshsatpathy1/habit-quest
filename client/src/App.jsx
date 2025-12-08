@@ -7,6 +7,7 @@ import CalendarView from './CalendarView';
 import { api } from './api';
 
 import DecayInfoModal from './DecayInfoModal';
+import XpFloatingText from './XpFloatingText';
 
 import { SyncManager } from './SyncManager';
 
@@ -20,6 +21,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [enableAdvancedActions, setEnableAdvancedActions] = useState(false);
   const [showDecayInfo, setShowDecayInfo] = useState(false);
+  const [xpGain, setXpGain] = useState(null);
 
   const lastCheckedDateRef = useRef(new Date().toDateString());
 
@@ -219,7 +221,11 @@ function App() {
           updatedCharacter.exp -= updatedCharacter.expToNextLevel;
           updatedCharacter.level += 1;
           updatedCharacter.expToNextLevel = calculateNextLevelExp(updatedCharacter.level);
+          updatedCharacter.expToNextLevel = calculateNextLevelExp(updatedCharacter.level);
           playSound('levelup');
+        } else {
+          // Show floating XP text if not leveling up (optional: show for level up too, but maybe different)
+          setXpGain({ amount: rewards, id: Date.now() });
         }
       }
     } else {
@@ -369,6 +375,13 @@ function App() {
         </div>
 
         {showDecayInfo && <DecayInfoModal onClose={() => setShowDecayInfo(false)} />}
+
+        {xpGain && (
+          <XpFloatingText
+            amount={xpGain.amount}
+            onComplete={() => setXpGain(null)}
+          />
+        )}
 
         <CharacterProfile character={character} onReset={handleReset} showResetButton={enableAdvancedActions} />
         <StatsDashboard habits={habits} onFilterChange={setActiveTab} />
