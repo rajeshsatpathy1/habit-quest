@@ -371,7 +371,7 @@ function App() {
         {showDecayInfo && <DecayInfoModal onClose={() => setShowDecayInfo(false)} />}
 
         <CharacterProfile character={character} onReset={handleReset} showResetButton={enableAdvancedActions} />
-        <StatsDashboard habits={habits} />
+        <StatsDashboard habits={habits} onFilterChange={setActiveTab} />
         <AddHabitForm onAdd={handleAddHabit} />
 
         {/* Tabs */}
