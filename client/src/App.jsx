@@ -378,6 +378,7 @@ function App() {
 
         {xpGain && (
           <XpFloatingText
+            key={xpGain.id}
             amount={xpGain.amount}
             onComplete={() => setXpGain(null)}
           />
