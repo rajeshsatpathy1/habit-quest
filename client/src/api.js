@@ -30,7 +30,12 @@ const realApi = {
             console.warn("Offline mode: Loading data from cache", err);
             const cachedData = SyncManager.loadFromCache('data');
             if (cachedData) return cachedData;
-            throw err;
+
+            // Critical Change: Return a specific error object or throw a specific error
+            // so App.jsx knows this is an "Offline + No Data" scenario, not just a generic error.
+            const error = new Error("Offline and no cached data available");
+            error.code = 'OFFLINE_NO_CACHE';
+            throw error;
         }
     },
     addHabit: async (habit) => {

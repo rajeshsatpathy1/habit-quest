@@ -22,6 +22,7 @@ function App() {
   const [enableAdvancedActions, setEnableAdvancedActions] = useState(false);
   const [showDecayInfo, setShowDecayInfo] = useState(false);
   const [xpGain, setXpGain] = useState(null);
+  const [showSyncingToast, setShowSyncingToast] = useState(false);
 
   const lastCheckedDateRef = useRef(new Date().toDateString());
 
@@ -41,8 +42,12 @@ function App() {
 
     const handleOnline = () => {
       setIsOffline(false);
+      setShowSyncingToast(true);
       console.log("Back online! Syncing...");
-      SyncManager.processQueue(api).then(() => loadData());
+      SyncManager.processQueue(api).then(() => {
+        loadData();
+        setTimeout(() => setShowSyncingToast(false), 4000); // Hide after 4 seconds
+      });
     };
 
     const handleOffline = () => {
@@ -147,6 +152,15 @@ function App() {
       setHabits(updatedHabits);
     } catch (err) {
       console.error("Failed to load data", err);
+      if (err.code === 'OFFLINE_NO_CACHE') {
+        // Specific handling for offline with no data
+        setHabits([]); // unnecessary but explicit
+        // We can maybe set a flag to show a specific empty state, 
+        // but simply strictly failing here allows us to maybe show an error in the UI if needed.
+        // For now, let's allow it to render empty but maybe adding a specific UI hint?
+        // Actually, if we just let it fail, the "loading" becomes false and it renders empty habits list.
+        // Let's rely on the "FilteredHabits" check, but maybe add a global "OfflineNoData" state?
+      }
     } finally {
       setLoading(false);
     }
@@ -315,6 +329,11 @@ function App() {
           {isOffline && (
             <div className="mt-2 inline-block bg-yellow-600/90 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">
               ⚠️ Offline Mode
+            </div>
+          )}
+          {showSyncingToast && !isOffline && (
+            <div className="mt-2 inline-block bg-green-600/90 text-white px-3 py-1 rounded-full text-sm font-bold animate-bounce">
+              ♻️ Back Online! Syncing...
             </div>
           )}
 
