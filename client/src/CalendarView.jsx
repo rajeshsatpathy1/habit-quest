@@ -37,12 +37,72 @@ export default function CalendarView({ habits }) {
         });
     };
 
+    // Check for missed tasks on a date
+    const getMissedTasksForDate = (dateStr) => {
+        const date = new Date(dateStr);
+        const isToday = dateStr === new Date().toDateString();
+        const isFuture = date > new Date();
+
+        if (isFuture) return [];
+
+        return habits.filter(h => {
+            // Must be active on this date
+            const createdDate = new Date(h.id);
+            createdDate.setHours(0, 0, 0, 0);
+            if (createdDate > date) return false;
+
+            // Check if completed
+            const isCompleted = (h.completedToday && isToday) || (h.completionHistory && h.completionHistory.includes(dateStr));
+
+            // DAILY: Simple check if not completed
+            if (h.frequency === 'daily') {
+                return !isCompleted;
+            }
+
+            // WEEKLY: Show as missed if it's the end of the week (Sunday) and wasn't done during the week
+            if (h.frequency === 'weekly') {
+                const isEndOfWeek = date.getDay() === 0; // Sunday
+                if (!isEndOfWeek) return false;
+
+                // Check if completed ANY day this week
+                const startOfWeek = new Date(date);
+                startOfWeek.setDate(date.getDate() - 6);
+                startOfWeek.setHours(0, 0, 0, 0);
+
+                const completedThisWeek = h.completionHistory?.some(histDate => {
+                    const d = new Date(histDate);
+                    return d >= startOfWeek && d <= date;
+                }) || (h.completedToday && isToday);
+
+                return !completedThisWeek;
+            }
+
+            // MONTHLY: Show as missed if it's the end of the month and wasn't done during the month
+            if (h.frequency === 'monthly') {
+                const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+                const isEndOfMonth = date.getDate() === lastDayOfMonth;
+                if (!isEndOfMonth) return false;
+
+                // Check if completed ANY day this month
+                const completedThisMonth = h.completionHistory?.some(histDate => {
+                    const d = new Date(histDate);
+                    return d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
+                }) || (h.completedToday && isToday);
+
+                return !completedThisMonth;
+            }
+
+            return false;
+        });
+    };
+
     const handleDateClick = (date) => {
         if (!date) return;
         setSelectedDate(date.toDateString());
     };
 
     const selectedDateCompletions = getCompletionsForDate(selectedDate);
+    const selectedDateMissed = getMissedTasksForDate(selectedDate);
     const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
 
     return (
@@ -122,18 +182,42 @@ export default function CalendarView({ habits }) {
                 <h3 className="text-lg font-semibold text-white mb-2">
                     Activity for {selectedDate}
                 </h3>
-                {selectedDateCompletions.length === 0 ? (
-                    <p className="text-slate-400 text-sm">No quests completed on this day.</p>
-                ) : (
-                    <ul className="space-y-2">
-                        {selectedDateCompletions.map(habit => (
-                            <li key={habit.id} className="flex items-center gap-2 text-green-200 bg-slate-900/50 p-2 rounded">
-                                <span>✓</span>
-                                <span>{habit.name}</span>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+
+                <div className="space-y-4">
+                    {/* Completed Quests */}
+                    <div>
+                        <h4 className="text-sm font-medium text-slate-400 mb-2 uppercase tracking-wider">Completed Quests</h4>
+                        {selectedDateCompletions.length === 0 ? (
+                            <p className="text-slate-500 text-sm italic">No quests completed.</p>
+                        ) : (
+                            <ul className="space-y-2">
+                                {selectedDateCompletions.map(habit => (
+                                    <li key={habit.id} className="flex items-center gap-2 text-green-200 bg-slate-900/50 p-2 rounded border border-green-500/20">
+                                        <span className="text-green-500">✓</span>
+                                        <span>{habit.name}</span>
+                                        <span className="text-xs text-slate-500 ml-auto capitalize">{habit.frequency}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    {/* Missed Quests */}
+                    {selectedDateMissed.length > 0 && (
+                        <div>
+                            <h4 className="text-sm font-medium text-slate-400 mb-2 uppercase tracking-wider">Missed Quests</h4>
+                            <ul className="space-y-2">
+                                {selectedDateMissed.map(habit => (
+                                    <li key={habit.id} className="flex items-center gap-2 text-red-200 bg-red-900/10 p-2 rounded border border-red-500/20">
+                                        <span className="text-red-500">❌</span>
+                                        <span className="line-through decoration-red-500/50 text-slate-300">{habit.name}</span>
+                                        <span className="text-xs text-slate-500 ml-auto capitalize">{habit.frequency}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
