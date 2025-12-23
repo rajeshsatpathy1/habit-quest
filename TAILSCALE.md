@@ -24,6 +24,11 @@ You can automate the entire process using the provided script:
 ```
 This will launch the backend in a new window and start the Tailscale proxy in your current terminal.
 
+To stop both the backend and the Tailscale proxy:
+```powershell
+./stop-tailscale.ps1
+```
+
 ---
 
 ### Manual Setup Instructions

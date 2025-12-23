@@ -97,7 +97,7 @@ function App() {
       window.removeEventListener('offline', handleOffline);
       clearInterval(intervalId);
     };
-  }, [habits]);
+  }, []); // Run only once on mount
   const toggleAdvancedActions = () => {
     const newValue = !enableAdvancedActions;
     setEnableAdvancedActions(newValue);

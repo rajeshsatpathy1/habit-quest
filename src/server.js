@@ -1,11 +1,13 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const bodyParser = require('body-parser');
 const db = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
@@ -15,8 +17,6 @@ app.use((req, res, next) => {
   const tsName = req.headers['tailscale-user-name'];
 
   if (tsUser) {
-    console.log(`[Tailscale] Request from ${tsName} (${tsUser})`);
-    // You could attach this to req.user if you had an auth system
     req.tailscaleUser = { login: tsUser, name: tsName };
   }
   next();
@@ -112,15 +112,16 @@ app.put('/api/habit/:id', (req, res) => {
                frequency = COALESCE(?, frequency), 
                streak = COALESCE(?, streak), 
                totalCompleted = COALESCE(?, totalCompleted), 
-               lastCompletedDate = ?, 
-               lastActionDate = ?, 
-               completionHistory = ?, 
-               completedToday = ? 
+               lastCompletedDate = COALESCE(?, lastCompletedDate), 
+               lastActionDate = COALESCE(?, lastActionDate), 
+               completionHistory = COALESCE(?, completionHistory), 
+               completedToday = COALESCE(?, completedToday) 
                WHERE id = ?`;
   const params = [name, frequency, streak, totalCompleted, lastCompletedDate, lastActionDate, JSON.stringify(completionHistory), completedToday ? 1 : 0, req.params.id];
 
   db.run(sql, params, function (err) {
     if (err) {
+      console.error(`[Habit Update Error] ID: ${req.params.id} - ${err.message}`);
       res.status(400).json({ error: err.message });
       return;
     }

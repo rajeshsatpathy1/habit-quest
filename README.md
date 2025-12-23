@@ -103,6 +103,11 @@ If you have Tailscale installed, you can start both the server and the proxy wit
 ./start-tailscale.ps1
 ```
 
+To stop everything (current implementation is a bit clunky. Closes all tailscale and node processes):
+```powershell
+./stop-tailscale.ps1
+```
+
 ## ⚙️ Configuration
 
 -   **Feature Flags**: Click the ⚙️ gear icon in the app header to enable "Advanced Actions" (like Database Reset).
