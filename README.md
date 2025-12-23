@@ -11,10 +11,13 @@
 -   **Dynamic XP System**: Higher levels require more XP, keeping the challenge alive.
 -   **Soft Delete & History**: Deleting a habit archives it. Your history and XP are preserved.
 -   **Autocomplete**: Quickly recreate past habits with smart suggestions.
--   **Calendar View**: Visualize your consistency with a monthly activity calendar.
+-   **Enhanced Calendar View**: Visualize your consistency, including tracked missed tasks for better analysis.
+-   **Collapsible Form**: A tidier interface with a collapsible "Add Habit" form.
 -   **Offline Support**: Continue your quest even without internet. Progress syncs automatically when you reconnect.
 -   **Habit Decay Insights**: Clear visualization of how habit neglect affects your stats, with helpful tooltips.
--   **Smart Streaks**: Tracks daily, weekly, and monthly streaks accurately.
+-   **Smart Streaks**: Tracks daily, weekly, and monthly streaks accurately with intelligent labels.
+-   **Improved Analytics**: More accurate monthly and yearly completion rates tailored to habit frequency.
+-   **Global Private Access (NEW)**: Securely access your app from any device, anywhere using Tailscale. See [TAILSCALE.md](TAILSCALE.md).
 -   **Responsive Design**: Works great on desktop and mobile devices.
 -   **Data Safety**: SQLite database ensures your progress is saved locally.
 -   **Advanced Actions**: Feature-flagged "Reset Data" option for starting fresh.
@@ -85,14 +88,20 @@ Antigravity uses specialized markdown artifacts to maintain context and history 
     npm run dev
     ```
 
-## 📱 Mobile Access
+### 1. Local Network Access
+Access from other devices on your same Wi-Fi:
+-   **Hostname**: `http://kreato-droid.local:3000` (or `http://kreato-droid:3000`)
+-   **IP Address**: `http://<YOUR_LOCAL_IP>:3000` (e.g., `192.168.1.153:3000`)
 
-You can access the app from other devices on your local network (e.g., your phone).
+### 2. Global Private Access (Recommended)
+Access your app securely from **anywhere** (even over LTE/5G) without opening firewall ports.
+- **Guide**: See [TAILSCALE.md](TAILSCALE.md) for setup instructions and security details.
 
-1.  Ensure your device is on the same Wi-Fi.
-2.  Use your computer's **Hostname** or **IP Address**:
-    -   **Hostname**: `http://kreato-droid.local:3000` (or `http://kreato-droid:3000`)
-    -   **IP Address**: `http://<YOUR_LOCAL_IP>:3000` (e.g., `192.168.1.153:3000`)
+### ⚡ Quick Start (Tailscale)
+If you have Tailscale installed, you can start both the server and the proxy with one command:
+```powershell
+./start-tailscale.ps1
+```
 
 ## ⚙️ Configuration
 

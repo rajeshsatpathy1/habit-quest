@@ -9,6 +9,19 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
+// Tailscale Identity Middleware
+app.use((req, res, next) => {
+  const tsUser = req.headers['tailscale-user-login'];
+  const tsName = req.headers['tailscale-user-name'];
+
+  if (tsUser) {
+    console.log(`[Tailscale] Request from ${tsName} (${tsUser})`);
+    // You could attach this to req.user if you had an auth system
+    req.tailscaleUser = { login: tsUser, name: tsName };
+  }
+  next();
+});
+
 // API Routes
 
 // Reset database
@@ -151,17 +164,11 @@ app.put('/api/character', (req, res) => {
   });
 });
 
-const https = require('https');
-const fs = require('fs');
+const http = require('http');
 
-// ... existing code ...
+const server = http.createServer(app);
 
-const privateKey = fs.readFileSync(path.join(__dirname, '../key.pem'), 'utf8');
-const certificate = fs.readFileSync(path.join(__dirname, '../cert.pem'), 'utf8');
-const credentials = { key: privateKey, cert: certificate };
-
-const httpsServer = https.createServer(credentials, app);
-
-httpsServer.listen(PORT, () => {
-  console.log(`Server is running on https://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Tailscale tip: run 'tailscale serve http://localhost:${PORT}' to share securely.`);
 });
