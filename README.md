@@ -112,6 +112,31 @@ To stop everything (current implementation is a bit clunky. Closes all tailscale
 
 -   **Feature Flags**: Click the ⚙️ gear icon in the app header to enable "Advanced Actions" (like Database Reset).
 
+## 💻 Database CLI Tool
+The app includes a command-line utility (`db_util.js`) for advanced database management, useful for backfilling data or making manual corrections.
+
+### Usage
+Run the script using Node.js from the project root:
+
+1.  **List all habits**:
+    ```bash
+    node db_util.js list
+    ```
+
+2.  **Mark as Completed (Backfill)**:
+    Mark a habit as done for a specific date (e.g., if you forgot to track it yesterday).
+    ```bash
+    # Usage: node db_util.js complete "<Habit Name>" [YYYY-MM-DD]
+    node db_util.js complete "Workout" "2025-12-25"
+    ```
+
+3.  **Manual Updates**:
+    Directly set any field (streak, totalCompleted, etc.).
+    ```bash
+    # Usage: node db_util.js set "<Habit Name>" <Field> <Value>
+    node db_util.js set "Reading" streak 10
+    ```
+
 ## 📂 Project Structure
 
 ```
