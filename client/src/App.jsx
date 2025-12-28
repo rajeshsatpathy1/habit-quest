@@ -121,11 +121,11 @@ function App() {
         let updated = { ...habit };
         let changed = false;
 
-        // 1. Uncheck "completedToday" if it's a new day
-        if (updated.completedToday && updated.lastCompletedDate !== todayStr) {
-          updated.completedToday = false;
-          changed = true;
-        }
+        // Create a derived view for the UI, but relying on date truth
+        updated.completedToday = (updated.lastCompletedDate === todayStr);
+
+        // 1. REFACTORED: We no longer strictly needed to "save" this uncheck to the DB
+        // unless we are fixing other things. We let the derived state handle the UI.
 
         // 2. Reset streak if missed yesterday (for daily habits)
         if (updated.frequency === 'daily' && updated.streak > 0) {
@@ -138,10 +138,12 @@ function App() {
         }
 
         if (changed) {
+          // If we are updating (e.g. broken streak), we also save the derived completedToday status
+          // which keeps the DB clean, but we don't force a write JUST to uncheck.
           resetPromises.push(api.updateHabit(updated));
           return updated;
         }
-        return habit;
+        return updated; // Return the object with the derived completedToday property for the UI
       });
 
       if (resetPromises.length > 0) {

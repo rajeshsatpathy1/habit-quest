@@ -19,8 +19,13 @@ import { SyncManager } from './SyncManager';
 
 // Real API with Offline Support
 const realApi = {
-    getData: async () => {
+    getData: async function () {
         try {
+            // Flush the queue first if possible to avoid fetching stale data
+            if (navigator.onLine) {
+                await SyncManager.processQueue(this);
+            }
+
             const res = await fetch(`${API_BASE}/data`);
             if (!res.ok) throw new Error('Network response was not ok');
             const data = await res.json();
@@ -31,8 +36,6 @@ const realApi = {
             const cachedData = SyncManager.loadFromCache('data');
             if (cachedData) return cachedData;
 
-            // Critical Change: Return a specific error object or throw a specific error
-            // so App.jsx knows this is an "Offline + No Data" scenario, not just a generic error.
             const error = new Error("Offline and no cached data available");
             error.code = 'OFFLINE_NO_CACHE';
             throw error;
