@@ -6,7 +6,14 @@
   "scripts": {
     "start": "node src/server.js",
     "deploy": "cd client && npm run deploy",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "test": "cross-env NODE_ENV=test jest"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
   },
   "dependencies": {
     "body-parser": "^2.2.0",
@@ -15,5 +22,10 @@
     "sqlite3": "^5.1.7"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
+  }
 }

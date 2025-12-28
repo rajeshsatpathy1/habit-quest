@@ -124,37 +124,62 @@ function calculateDailyStreak(history) {
 }
 
 
-db.all("SELECT * FROM habits", (err, rows) => {
-    if (err) { console.error(err); return; }
 
-    let updates = 0;
+// Allow dependency injection for db, or use default
+function repairStreaks(databaseInstance) {
+    const dbToUse = databaseInstance || db;
 
-    rows.forEach(row => {
-        if (row.frequency !== 'daily') {
-            console.log(`Skipping non-daily habit: ${row.name} (${row.frequency})`);
-            return;
-        }
+    return new Promise((resolve, reject) => {
+        dbToUse.all("SELECT * FROM habits", (err, rows) => {
+            if (err) { console.error(err); reject(err); return; }
 
-        let history = [];
-        try { history = JSON.parse(row.completionHistory || '[]'); } catch (e) { }
+            let updates = 0;
+            let promises = [];
 
-        const correctStreak = calculateDailyStreak(history);
+            rows.forEach(row => {
+                if (row.frequency !== 'daily') {
+                    // console.log(`Skipping non-daily habit: ${row.name} (${row.frequency})`);
+                    return;
+                }
 
-        if (row.streak !== correctStreak) {
-            console.log(`Mismatch for "${row.name}": DB=${row.streak}, Calc=${correctStreak}. Fixing...`);
+                let history = [];
+                try { history = JSON.parse(row.completionHistory || '[]'); } catch (e) { }
 
-            db.run("UPDATE habits SET streak = ? WHERE id = ?", [correctStreak, row.id], (err) => {
-                if (err) console.error("Failed to update " + row.name, err);
-                else console.log(`  ✅ Fixed "${row.name}"`);
+                const correctStreak = calculateDailyStreak(history);
+
+                if (row.streak !== correctStreak) {
+                    // console.log(`Mismatch for "${row.name}": DB=${row.streak}, Calc=${correctStreak}. Fixing...`);
+
+                    const p = new Promise((resUpdate, rejUpdate) => {
+                        dbToUse.run("UPDATE habits SET streak = ? WHERE id = ?", [correctStreak, row.id], (err) => {
+                            if (err) {
+                                console.error("Failed to update " + row.name, err);
+                                rejUpdate(err);
+                            } else {
+                                // console.log(`  ✅ Fixed "${row.name}"`);
+                                updates++;
+                                resUpdate();
+                            }
+                        });
+                    });
+                    promises.push(p);
+                } else {
+                    // console.log(`OK: "${row.name}" (Streak: ${row.streak})`);
+                }
             });
-            updates++;
-        } else {
-            console.log(`OK: "${row.name}" (Streak: ${row.streak})`);
-        }
-    });
 
-    // Give time for async updates
-    setTimeout(() => {
+            Promise.all(promises).then(() => {
+                resolve(updates);
+            }).catch(reject);
+        });
+    });
+}
+
+if (require.main === module) {
+    repairStreaks(db).then(updates => {
         console.log(`\nScan complete. ${updates} habits updated.`);
-    }, 1000);
-});
+        // Force close if it hangs (optional)
+    });
+}
+
+module.exports = { calculateDailyStreak, repairStreaks, getISOWeek, getMonthKey };

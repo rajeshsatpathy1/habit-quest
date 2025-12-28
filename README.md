@@ -108,6 +108,22 @@ To stop everything (current implementation is a bit clunky. Closes all tailscale
 ./stop-tailscale.ps1
 ```
 
+
+## 🧪 Testing
+
+The project includes a comprehensive testing framework for both backend API and frontend component logic.
+
+**Run Backend Tests** (API & Data Integrity):
+```bash
+npm test
+```
+
+**Run Frontend Tests** (Streaks & UI Logic):
+```bash
+cd client
+npm test
+```
+
 ## ⚙️ Configuration
 
 -   **Feature Flags**: Click the ⚙️ gear icon in the app header to enable "Advanced Actions" (like Database Reset).

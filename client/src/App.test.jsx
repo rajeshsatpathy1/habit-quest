@@ -21,6 +21,12 @@ describe('App Component - Daily Reset Logic', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         api.getHabitHistory.mockResolvedValue([]);
+
+        // Mock Notification API
+        global.Notification = {
+            requestPermission: vi.fn().mockResolvedValue('granted'),
+            permission: 'granted',
+        };
     });
 
     it('should reset completedToday to false if lastCompletedDate is not today', async () => {
@@ -56,10 +62,8 @@ describe('App Component - Daily Reset Logic', () => {
         const checkbox = screen.getAllByRole('checkbox')[0];
         expect(checkbox).not.toBeChecked();
 
-        expect(api.updateHabit).toHaveBeenCalledWith(expect.objectContaining({
-            id: 1,
-            completedToday: false
-        }));
+        // Refactored logic: We don't call updateHabit just for unchecking visual state
+        expect(api.updateHabit).not.toHaveBeenCalled();
     });
 
     it('should reset streak to 0 if lastCompletedDate was before yesterday', async () => {

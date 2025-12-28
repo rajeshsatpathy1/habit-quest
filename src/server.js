@@ -169,7 +169,11 @@ const http = require('http');
 
 const server = http.createServer(app);
 
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`Tailscale tip: run 'tailscale serve http://localhost:${PORT}' to share securely.`);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Tailscale tip: run 'tailscale serve http://localhost:${PORT}' to share securely.`);
+  });
+}
+
+module.exports = app;
