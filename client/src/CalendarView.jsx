@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function CalendarView({ habits }) {
+export default function CalendarView({ habits, onEditDate }) {
     const [selectedDate, setSelectedDate] = useState(new Date().toDateString());
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -179,9 +179,17 @@ export default function CalendarView({ habits }) {
             </div>
 
             <div className="border-t border-slate-700 pt-4">
-                <h3 className="text-lg font-semibold text-white mb-2">
-                    Activity for {selectedDate}
-                </h3>
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-white">
+                        Activity for {selectedDate}
+                    </h3>
+                    <button
+                        onClick={() => onEditDate && onEditDate(new Date(selectedDate))}
+                        className="text-xs bg-slate-700 hover:bg-purple-600 text-white px-2 py-1 rounded transition-colors"
+                    >
+                        Edit History
+                    </button>
+                </div>
 
                 <div className="space-y-4">
                     {/* Completed Quests */}

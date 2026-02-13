@@ -10,6 +10,8 @@ import DecayInfoModal from './DecayInfoModal';
 import XpFloatingText from './XpFloatingText';
 
 import { SyncManager } from './SyncManager';
+import EditDayModal from './EditDayModal';
+import { calculateDailyStreak } from './streakCalculator';
 
 function App() {
   const [character, setCharacter] = useState({ level: 1, exp: 0, expToNextLevel: 100 });
@@ -23,6 +25,7 @@ function App() {
   const [showDecayInfo, setShowDecayInfo] = useState(false);
   const [xpGain, setXpGain] = useState(null);
   const [showSyncingToast, setShowSyncingToast] = useState(false);
+  const [editingDate, setEditingDate] = useState(null);
 
   const lastCheckedDateRef = useRef(new Date().toDateString());
 
@@ -286,6 +289,80 @@ function App() {
     }
   };
 
+  const handleTogglePastHabit = async (habit, dateStr, isCompleted) => {
+    let updatedHabit = { ...habit };
+    // Ensure completionHistory is an array
+    updatedHabit.completionHistory = Array.isArray(habit.completionHistory) ? [...habit.completionHistory] : [];
+
+    let updatedCharacter = { ...character };
+    const wasCompleted = updatedHabit.completionHistory.includes(dateStr);
+
+    if (isCompleted && !wasCompleted) {
+      // Completing
+      updatedHabit.completionHistory.push(dateStr);
+      updatedHabit.totalCompleted += 1;
+
+      // Add XP
+      const rewards = 25;
+      updatedCharacter.exp += rewards;
+
+      if (updatedCharacter.exp >= updatedCharacter.expToNextLevel) {
+        updatedCharacter.exp -= updatedCharacter.expToNextLevel;
+        updatedCharacter.level += 1;
+        updatedCharacter.expToNextLevel = calculateNextLevelExp(updatedCharacter.level);
+        playSound('levelup');
+      }
+    } else if (!isCompleted && wasCompleted) {
+      // Uncompleting
+      updatedHabit.completionHistory = updatedHabit.completionHistory.filter(d => d !== dateStr);
+      updatedHabit.totalCompleted = Math.max(0, updatedHabit.totalCompleted - 1);
+
+      // Deduct XP
+      const rewards = 25;
+      updatedCharacter.exp -= rewards;
+
+      if (updatedCharacter.exp < 0) {
+        if (updatedCharacter.level > 1) {
+          updatedCharacter.level -= 1;
+          updatedCharacter.expToNextLevel = calculateNextLevelExp(updatedCharacter.level);
+          updatedCharacter.exp += updatedCharacter.expToNextLevel;
+        } else {
+          updatedCharacter.exp = 0;
+        }
+      }
+    } else {
+      return; // No change
+    }
+
+    // Recalculate streak
+    updatedHabit.streak = calculateDailyStreak(updatedHabit.completionHistory);
+
+    // Update lastCompletedDate
+    const historySorted = [...updatedHabit.completionHistory].sort((a, b) => new Date(b) - new Date(a));
+    updatedHabit.lastCompletedDate = historySorted.length > 0 ? historySorted[0] : null;
+
+    // specific check for today
+    const todayStr = new Date().toDateString();
+    if (dateStr === todayStr) {
+      updatedHabit.completedToday = isCompleted;
+    } else if (updatedHabit.lastCompletedDate === todayStr) {
+      updatedHabit.completedToday = true;
+    } else {
+      updatedHabit.completedToday = false;
+    }
+
+    updatedHabit.lastActionDate = new Date().toDateString();
+
+    try {
+      setHabits(habits.map(h => h.id === habit.id ? updatedHabit : h));
+      setCharacter(updatedCharacter);
+      await api.updateHabit(updatedHabit);
+      await api.updateCharacter(updatedCharacter);
+    } catch (err) {
+      console.error("Failed to update past habit", err);
+    }
+  };
+
   const handleDeleteHabit = async (id) => {
     if (confirm('Are you sure you want to delete this habit? It will be archived and can be restored via autocomplete.')) {
       try {
@@ -397,6 +474,15 @@ function App() {
 
         {showDecayInfo && <DecayInfoModal onClose={() => setShowDecayInfo(false)} />}
 
+        {editingDate && (
+          <EditDayModal
+            date={editingDate}
+            habits={habits.filter(h => h.frequency === 'daily')} // Only daily habits for now
+            onToggle={handleTogglePastHabit}
+            onClose={() => setEditingDate(null)}
+          />
+        )}
+
         {xpGain && (
           <XpFloatingText
             key={xpGain.id}
@@ -453,7 +539,7 @@ function App() {
 
         {/* Content */}
         {activeTab === 'calendar' ? (
-          <CalendarView habits={habits} />
+          <CalendarView habits={habits} onEditDate={setEditingDate} />
         ) : (
           <div className="space-y-3">
             {filteredHabits.length === 0 ? (

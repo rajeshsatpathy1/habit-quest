@@ -12,6 +12,7 @@
 -   **Soft Delete & History**: Deleting a habit archives it. Your history and XP are preserved.
 -   **Autocomplete**: Quickly recreate past habits with smart suggestions.
 -   **Enhanced Calendar View**: Visualize your consistency, including tracked missed tasks for better analysis.
+-   **Edit History**: Directly edit past habit completions from the Calendar view to correct mistakes.
 -   **Collapsible Form**: A tidier interface with a collapsible "Add Habit" form.
 -   **Offline Support**: Continue your quest even without internet. Progress syncs automatically when you reconnect.
 -   **Habit Decay Insights**: Clear visualization of how habit neglect affects your stats, with helpful tooltips.
